@@ -9,36 +9,39 @@ import {
 } from '@onflow/flow-cadut'
 
 export const CODE = `
-import "Flowcase" from 0xFLOWCASE
+import NonFungibleToken from 0xNONFUNGIBLETOKEN
+import Flowcase from 0xFLOWCASE
 
-transaction(showcaseName: String, accountAddress: Address, publicPaths: [PublicPath], nftIds: [UInt64]) {
-    let flowcaseCollection: &Flowcase.ShowcaseCollection
+transaction(showcaseName: String, publicPaths: [PublicPath], nftIDs: [UInt64]) {
+    let showcaseCollection: &Flowcase.ShowcaseCollection
+    let showcaseAccount: PublicAccount
 
     prepare(signer: AuthAccount) {
-        if signer.borrow<&Flowcase.ShowcaseCollection>(from: Flowcase.storagePath) == nil {
+        if signer.borrow<&Flowcase.ShowcaseCollection>(from: /storage/flowcaseCollection) == nil {
             let collection <- Flowcase.createEmptyCollection()
             signer.save(<-collection, to: /storage/flowcaseCollection)
         }
 
-        signer.link<&{Flowcase.ShowcaseCollectionPublic}>(Flowcase.publicPath, target: /storage/flowcaseCollection)
+        signer.link<&{Flowcase.ShowcaseCollectionPublic}>(/public/flowcaseCollection, target: /storage/flowcaseCollection)
 
-        self.flowcaseCollection = signer.borrow<&Flowcase.Showcase>(from: Flowcase.storagePath) ??
+        self.flowcaseCollection = signer.borrow<&Flowcase.Showcase>(from: /storage/flowcaseCollection) ??
             panic("Could not borrow a reference to the Flowcase")
+
+        self.showcaseAccount = getAccount(signer.address)
     }
 
     execute {
         var showcaseNFTs: [Flowcase.NFTPointer] = []
-        let showcaseAccount = getAccount(accountAddress)
 
         var i = 0
         while (i < publicPaths.length) {
             let publicPath = publicPaths[i]
-            let nftId = nftIds[i]
-            showcaseNFTs.append(Flowcase.NFTPointer(id: nftId, collection: showcaseAccount.getCapability<&{NonFungibleToken.CollectionPublic}>(publicPath)))
-            i++
+            let nftID = nftIDs[i]
+            showcaseNFTs.append(Flowcase.NFTPointer(id: nftID, collection: self.showcaseAccount.getCapability<&{NonFungibleToken.CollectionPublic}>(publicPath)))
+            i = i + 1
         }
 
-        self.flowcaseCollection.addShowcase(showcaseName: showcaseName, nfts: showcaseNFTs)
+        self.showcaseCollection.addShowcase(showcaseName: showcaseName, nfts: showcaseNFTs)
     }
 }
 
@@ -72,7 +75,7 @@ export const createShowcase = async (props = {}) => {
   const { addressMap, args = [], signers = [] } = props;
   const code = await createShowcaseTemplate(addressMap);
 
-  reportMissing("arguments", args.length, 4, `createShowcase =>`);
+  reportMissing("arguments", args.length, 3, `createShowcase =>`);
   reportMissing("signers", signers.length, 1, `createShowcase =>`);
 
   return sendTransaction({code, processed: true, ...props})

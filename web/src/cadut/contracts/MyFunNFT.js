@@ -8,8 +8,8 @@ import {
 } from '@onflow/flow-cadut'
 
 export const CODE = `
-import "NonFungibleToken"
-import "MetadataViews"
+import NonFungibleToken
+import MetadataViews
 
 pub contract MyFunNFT: NonFungibleToken {
 

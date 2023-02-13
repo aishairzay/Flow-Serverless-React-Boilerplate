@@ -9,8 +9,36 @@ import {
 } from '@onflow/flow-cadut'
 
 export const CODE = `
-pub fun main(): Int {
-    return 42
+import NonFungibleToken from 0xNONFUNGIBLETOKENADDRESS
+import MetadataViews from 0xMETADATAVIEWSADDRESS
+import Flowcase from 0xFLOWCASEADDRESS
+
+pub fun main(address: Address): Flowcase.Showcase {
+    let account = getAccount(address)
+    var nfts: [AnyStruct] = []
+    account.forEachPublic(fun (path: PublicPath, type: Type): Bool {
+
+        // Filter for only public NFT collections
+        let nftType = Type<Capability<&AnyResource{NonFungibleToken.CollectionPublic}>>()
+        if (type.isSubtype(of: nftType)) {
+            let nftCollection = account.getCapability<&AnyResource{NonFungibleToken.CollectionPublic}>(path).borrow()!
+            let nftIDs = nftCollection.getIDs()!
+            for id in nftIDs {
+                let nft = nftCollection.borrowNFT(id: id)
+                let displayView = nft.resolveView(Type<MetadataViews.Display>())
+
+                nfts.append({
+                    "nftID": id,
+                    "publicPath": path,
+                    "display": displayView,
+                    "type": nft.getType().identifier
+                })
+            }
+        }
+        return true
+    })
+    
+    return nfts
 }
 
 `;
@@ -36,7 +64,7 @@ export const getShowcases = async (props = {}) => {
   const { addressMap = {}, args = [] } = props
   const code = await getShowcasesTemplate(addressMap);
 
-  reportMissing("arguments", args.length, 0, `getShowcases =>`);
+  reportMissing("arguments", args.length, 1, `getShowcases =>`);
 
   return executeScript({code, processed: true, ...props})
 }

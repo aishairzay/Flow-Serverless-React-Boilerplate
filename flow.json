@@ -1,7 +1,12 @@
 {
 	"contracts": {
 		"Flowcase": "cadence/contracts/Flowcase.cdc",
-		"MyFunNFT": "cadence/contracts/MyFunNFT.cdc",
+		"MyFunNFT": {
+			"source": "./cadence/contracts/MyFunNFT.cdc",
+			"aliases": {
+					"testnet": "0x503b9841a6e501eb"
+			}
+		},
 		"FungibleToken": {
 			"source": "./cadence/contracts/FungibleToken.cdc",
 			"aliases": {
@@ -38,16 +43,23 @@
 		"emulator-account": {
 			"address": "f8d6e0586b0a20c7",
 			"key": "6d12eebfef9866c9b6fa92b97c6e705c26a1785b1e7944da701fc545a51d4673"
+		},
+		"testnet-account": {
+			"address": "0xad34354eb0c6ab2a",
+			"key": "$SHOWCASE_TESTNET_KEY"
 		}
 	},
 	"deployments": {
 		"emulator": {
 			"default": [
-				"Flowcase",
 				"MetadataViews",
-				"MyFunNFT",
 				"NonFungibleToken",
-				"FungibleToken"
+				"Flowcase"
+			]
+		},
+		"testnet": {
+			"testnet-account": [
+				"Flowcase"
 			]
 		}
 	}

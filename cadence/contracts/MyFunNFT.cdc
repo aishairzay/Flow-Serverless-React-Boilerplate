@@ -1,5 +1,5 @@
-import "NonFungibleToken"
-import "MetadataViews"
+import NonFungibleToken
+import MetadataViews
 
 pub contract MyFunNFT: NonFungibleToken {
 
