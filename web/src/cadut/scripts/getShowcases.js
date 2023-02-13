@@ -13,32 +13,34 @@ import NonFungibleToken from 0xNONFUNGIBLETOKENADDRESS
 import MetadataViews from 0xMETADATAVIEWSADDRESS
 import Flowcase from 0xFLOWCASEADDRESS
 
-pub fun main(address: Address): Flowcase.Showcase {
+pub fun main(address: Address): {String: [AnyStruct]}? {
     let account = getAccount(address)
     var nfts: [AnyStruct] = []
-    account.forEachPublic(fun (path: PublicPath, type: Type): Bool {
+    let flowcaseCap = account.getCapability<&{Flowcase.ShowcaseCollectionPublic}>(/public/flowcaseCollection)
+        .borrow()
 
-        // Filter for only public NFT collections
-        let nftType = Type<Capability<&AnyResource{NonFungibleToken.CollectionPublic}>>()
-        if (type.isSubtype(of: nftType)) {
-            let nftCollection = account.getCapability<&AnyResource{NonFungibleToken.CollectionPublic}>(path).borrow()!
-            let nftIDs = nftCollection.getIDs()!
-            for id in nftIDs {
-                let nft = nftCollection.borrowNFT(id: id)
-                let displayView = nft.resolveView(Type<MetadataViews.Display>())
-
-                nfts.append({
-                    "nftID": id,
-                    "publicPath": path,
+    if flowcaseCap != nil {
+        let showcases = flowcaseCap!.getShowcases()
+        let allShowcases: {String: [AnyStruct]} = {}
+        for showcaseName in showcases.keys {
+            let nfts: [AnyStruct] = []
+            let showcase = showcases[showcaseName]!
+            let nftCaps = showcase.getNFTs()
+            for nftPointer in nftCaps {
+                let borrowedNFT = nftPointer.collection.borrow()!.borrowNFT(id: nftPointer.id)
+                let displayView = borrowedNFT.resolveView(Type<MetadataViews.Display>())
+                let nftView: AnyStruct = {
+                    "nftID": borrowedNFT.id,
                     "display": displayView,
-                    "type": nft.getType().identifier
-                })
+                    "type": borrowedNFT.getType().identifier
+                }
+                nfts.append(nftView)
             }
+            allShowcases[showcaseName] = nfts
         }
-        return true
-    })
-    
-    return nfts
+        return allShowcases
+    }
+    return {}
 }
 
 `;

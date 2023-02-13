@@ -9,18 +9,18 @@ import {
 } from '@onflow/flow-cadut'
 
 export const CODE = `
-import "Flowcase" from 0xFLOWCASE
+import Flowcase from 0xFLOWCASE
 
 transaction(showcaseName: String) {
-    let flowcase: &Flowcase.Showcase
+    let flowcase: &Flowcase.ShowcaseCollection
 
     prepare(signer: AuthAccount) {
-        self.flowcase = signer.borrow<&Flowcase.Showcase>(from: /storage/flowcaseCollection) ??
+        self.flowcase = signer.borrow<&Flowcase.ShowcaseCollection>(from: /storage/flowcaseCollection) ??
             panic("Could not borrow a reference to the Flowcase")
     }
 
     execute {
-        self.flowcase.removeShowcase(showcaseName: showcaseName)
+        self.flowcase.removeShowcase(name: showcaseName)
     }
 }
 

@@ -18,14 +18,14 @@ transaction(showcaseName: String, publicPaths: [PublicPath], nftIDs: [UInt64]) {
 
     prepare(signer: AuthAccount) {
         if signer.borrow<&Flowcase.ShowcaseCollection>(from: /storage/flowcaseCollection) == nil {
-            let collection <- Flowcase.createEmptyCollection()
+            let collection <- Flowcase.createShowcaseCollection()
             signer.save(<-collection, to: /storage/flowcaseCollection)
         }
 
         signer.link<&{Flowcase.ShowcaseCollectionPublic}>(/public/flowcaseCollection, target: /storage/flowcaseCollection)
 
-        self.flowcaseCollection = signer.borrow<&Flowcase.Showcase>(from: /storage/flowcaseCollection) ??
-            panic("Could not borrow a reference to the Flowcase")
+        self.showcaseCollection = signer.borrow<&Flowcase.ShowcaseCollection>(from: /storage/flowcaseCollection) ??
+            panic("Could not borrow a reference to the Flowcase ShowcaseCollection")
 
         self.showcaseAccount = getAccount(signer.address)
     }
@@ -41,7 +41,7 @@ transaction(showcaseName: String, publicPaths: [PublicPath], nftIDs: [UInt64]) {
             i = i + 1
         }
 
-        self.showcaseCollection.addShowcase(showcaseName: showcaseName, nfts: showcaseNFTs)
+        self.showcaseCollection.addShowcase(name: showcaseName, nfts: showcaseNFTs)
     }
 }
 
