@@ -13,15 +13,8 @@ import NonFungibleToken from "./NonFungibleToken.cdc"
 // A way to create and store groupings of NFTs in a showcase
 pub contract Flowcase {
 
-    pub event ShowcaseAdded(name: String, to: Address?)
-    pub event ShowcaseRemoved(name: String)
-
-    pub let publicPath: PublicPath
-    pub let storagePath: StoragePath
-
     init() {
-        self.publicPath = /public/flowcaseCollection
-        self.storagePath = /storage/flowcaseCollection
+        // Intentionally left blank
     }
 
     pub struct NFTPointer {
@@ -47,6 +40,9 @@ pub contract Flowcase {
             return self.nfts
         }
     }
+
+    pub event ShowcaseAdded(name: String, to: Address?)
+    pub event ShowcaseRemoved(name: String)
 
     pub resource interface ShowcaseCollectionPublic {
         pub fun getShowcases(): {String: Showcase}
